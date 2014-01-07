@@ -1,0 +1,139 @@
+# Maintainer:  Alan Young <archlinux@harleypig.com>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+# Contributor: Pierre Schmitz <pierre@archlinux.de>
+
+# This is a minimal installation based on both the 2.2.x version available in
+# the abs and the BLFS instructions
+# ( http://www.linuxfromscratch.org/blfs/view/svn/server/apache.html ), also
+# see the discussion page for other pointers.
+
+pkgname=apache
+pkgver=2.4.7
+pkgrel=1
+pkgdesc='A high performance Unix-based HTTP server'
+arch=('i686' 'x86_64')
+url='http://www.apache.org/dist/httpd'
+license=('APACHE')
+
+# XXX: Check which files need to be preserved across upgrades.
+
+backup=(etc/conf.d/apache
+        etc/httpd/conf/extra/httpd-{autoindex,dav,default,info,languages}.conf
+        etc/httpd/conf/extra/httpd-{manual,mpm,multilang-errordoc}.conf
+        etc/httpd/conf/extra/httpd-{ssl,userdir,vhosts}.conf
+        etc/httpd/conf/extra/proxy-html.conf
+        etc/httpd/conf/httpd.conf
+        etc/logrotate.d/httpd)
+
+depends=('openssl' 'zlib' 'apr-util' 'pcre' 'systemd')
+optdepends=('lynx: apachectl status'
+            'db: Berkeley DB'
+            'doxygen: Documentation')
+
+install=apache.install
+
+source=(http://www.apache.org/dist/httpd/httpd-${pkgver}.tar.bz2
+        apachectl-confd.patch
+        apache.conf.d
+        apache.tmpfiles.conf
+        httpd.logrotate
+        httpd.service
+        arch.layout)
+
+# Generate this with updpkgsums.
+md5sums=('170d7fb6fe5f28b87d1878020a9ab94e'
+         '5581f3e14eec926ca23f07277d0dfa48'
+         '08b3c875f6260644f2f52b4056d656b0'
+         '82068753dab92fe86312b1010a2904d7'
+         '13dbaaf949c5bc36cfcf5718b95cb020'
+         'a823bb355c136fd0e2b3fb820e2d903c'
+         'dd69fd0c02f7f6e2b923f0c20383a96a')
+
+build() {
+
+  cd "${srcdir}/httpd-${pkgver}"
+
+  # Patch template conf file to look for arch linux conf file locations.
+  patch -Np0 -i "${srcdir}/apachectl-confd.patch"
+
+  # Change default user and group.
+  sed -e 's#User daemon#User http#'   \
+      -e 's#Group daemon#Group http#' \
+      -i docs/conf/httpd.conf.in
+
+  # Force the apxs utility to use absolute pathnames for modules, when
+  # instructed to do so.
+  sed '/dir.*CFG_PREFIX/s@^@#@' -i support/apxs.in
+
+  # Add arch linux directory layout option to config options.
+  cat "${srcdir}/arch.layout" >> config.layout
+
+  autoconf
+
+  # See https://httpd.apache.org/docs/2.4/programs/configure.html for more
+  # configure options.
+
+  # Use arch linux directory layout.
+  config_options="${config_options} --enable-layout=Arch"
+
+  # Build modules as dynamic shared objects (DSO).
+  # Let's see what 'few' gets us ...
+  config_options="${config_options} --enable-mods-shared=few"
+
+  # Select all MPMs which support dynamic loading on the current platform and
+  # build them as DSO modules.
+  config_options="${config_options} --enable-mpms-shared=all"
+
+  # See the various bits of documentation for suexec.
+  # caller needs to be the same as the default user we set above.
+  # docroot needs to match the default docroot we set in layout.
+  # safepath is the path suexec can access, since the default resolves to
+  #   /usr/bin for all paths, just remove the duplication.
+  config_options="${config_options} --enable-suexec=shared"
+  config_options="${config_options} --with-suexec-caller=http"
+  config_options="${config_options} --with-suexec-docroot=/srv/http"
+  config_options="${config_options} --with-suexec-safepath=/usr/bin"
+
+  # We want to use the separate apr and apr-util packages.
+  config_options="${config_options} --with-apr=/usr/bin/apr-1-config"
+  config_options="${config_options} --with-apr-util=/usr/bin/apu-1-config"
+
+  ./configure $config_options
+  make
+
+}
+
+package() {
+
+  cd "${srcdir}/httpd-${pkgver}"
+  make DESTDIR="${pkgdir}/" install
+
+  install -D -m644 "${srcdir}/httpd.logrotate" "${pkgdir}/etc/logrotate.d/httpd"
+  install -D -m644 "${srcdir}/apache.conf.d" "${pkgdir}/etc/conf.d/apache"
+  install -D -m644 "${srcdir}/apache.tmpfiles.conf" "${pkgdir}/usr/lib/tmpfiles.d/apache.conf"
+
+  # symlinks for /etc/httpd
+  ln -fs /var/log/httpd "${pkgdir}/etc/httpd/logs"
+  ln -fs /run/httpd "${pkgdir}/etc/httpd/run"
+  ln -fs /usr/lib/httpd/modules "${pkgdir}/etc/httpd/modules"
+  ln -fs /usr/lib/httpd/build "${pkgdir}/etc/httpd/build"
+
+  # set sane defaults
+  sed -e 's#/usr/lib/httpd/modules/#modules/#' \
+      -e 's|#\(Include conf/extra/httpd-multilang-errordoc.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-autoindex.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-languages.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-userdir.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-default.conf\)|\1|' \
+      -i "${pkgdir}/etc/httpd/conf/httpd.conf"
+
+  # cleanup
+  rm -rf "${pkgdir}/etc/httpd/conf/original"
+  rm -rf "${pkgdir}/srv/"
+  rm -rf "${pkgdir}/run"
+
+  install -m755 -d "${pkgdir}/usr/lib/systemd/system"
+  install -m644 "${srcdir}/httpd.service" "${pkgdir}/usr/lib/systemd/system/"
+
+}

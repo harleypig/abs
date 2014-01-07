@@ -1,0 +1,10 @@
+*
+!.gitignore
+!apache.conf.d
+!apachectl-confd.patch
+!apache.install
+!apache.tmpfiles.conf
+!arch.layout
+!httpd.logrotate
+!httpd.service
+!PKGBUILD
