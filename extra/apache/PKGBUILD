@@ -3,18 +3,20 @@
 # Contributor: Andrea Scarpino <andrea@archlinux.org>
 # Contributor: Pierre Schmitz <pierre@archlinux.de>
 
-# This is a minimal installation based on both the 2.2.x version available in
-# the extra repository and the 2.4.x version available in the aur.  Also, the
-# BLFS instructions and discussion pages were helpful.
+# This was a minimal installation, but it has turned into a custom
+# installation for my own purposes.
 #
-# URLs:
-#  https://httpd.apache.org/docs/2.4/install.html
-#  http://www.linuxfromscratch.org/blfs/view/svn/server/apache.html
-#  https://aur.archlinux.org/packages/ap/apache24/PKGBUILD
+# This pkgbuild is based on both the 2.2.x version available in the extra
+# repository and the 2.4.x version available in the aur.  Also, the BLFS
+# instructions and discussion pages were helpful.
+#
+# URLs: https://httpd.apache.org/docs/2.4/install.html
+# http://www.linuxfromscratch.org/blfs/view/svn/server/apache.html
+# https://aur.archlinux.org/packages/ap/apache24/PKGBUILD
 
 pkgname=apache
 pkgver=2.4.7
-pkgrel=1
+pkgrel=2
 pkgdesc='A high performance Unix-based HTTP server'
 arch=('i686' 'x86_64')
 url='http://www.apache.org/dist/httpd'
@@ -42,29 +44,32 @@ install=apache.install
 
 source=(http://www.apache.org/dist/httpd/httpd-${pkgver}.tar.bz2
         http://www.apache.org/dist/httpd/httpd-${pkgver}.tar.bz2.asc
-        apachectl-confd.patch
         apache.conf.d
+        apachectl-confd.patch
         apache.tmpfiles.conf
+        arch.layout
+        httpd-info.patch
         httpd.logrotate
-        httpd.service
-        arch.layout)
+        httpd.service)
 
 # Generate this with updpkgsums.
 md5sums=('170d7fb6fe5f28b87d1878020a9ab94e'
          'SKIP'
-         '5581f3e14eec926ca23f07277d0dfa48'
          '08b3c875f6260644f2f52b4056d656b0'
+         '5581f3e14eec926ca23f07277d0dfa48'
          '26a5d2b1d9e89b339b8608c5002f8c00'
+         'dd69fd0c02f7f6e2b923f0c20383a96a'
+         '09e2fa6aacd484e464e41b46f6677400'
          '13dbaaf949c5bc36cfcf5718b95cb020'
-         'a823bb355c136fd0e2b3fb820e2d903c'
-         'dd69fd0c02f7f6e2b923f0c20383a96a')
+         'a823bb355c136fd0e2b3fb820e2d903c')
 
 build() {
 
   cd "${srcdir}/httpd-${pkgver}"
 
-  # Patch template conf file to look for arch linux conf file locations.
+  # Patch various files
   patch -Np0 -i "${srcdir}/apachectl-confd.patch"
+  patch -Np0 -i "${srcdir}/httpd-info.patch"
 
   # Change default user and group.
   sed -e 's#User daemon#User http#'   \
@@ -87,8 +92,9 @@ build() {
   config_options="${config_options} --enable-layout=Arch"
 
   # Build modules as dynamic shared objects (DSO).
-  # Let's see what 'few' gets us ...
-  config_options="${config_options} --enable-mods-shared=few"
+  # Let's see what 'few' gets us ... not enough, so let's see what 'most' gets
+  # us ...
+  config_options="${config_options} --enable-mods-shared=most"
 
   # Select all MPMs which support dynamic loading on the current platform and
   # build them as DSO modules.
@@ -131,14 +137,24 @@ package() {
   ln -fs /usr/lib/httpd/modules "${pkgdir}/etc/httpd/modules"
   ln -fs /var/log/httpd "${pkgdir}/etc/httpd/logs"
 
-  # set sane defaults
+  # Include extra conf files and make sure needed modules are loaded.
   sed -e 's#/usr/lib/httpd/modules/#modules/#' \
       -e 's|#\(Include conf/extra/httpd-autoindex.conf\)|\1|' \
       -e 's|#\(Include conf/extra/httpd-default.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-info.conf\)|\1|' \
       -e 's|#\(Include conf/extra/httpd-languages.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-manual.conf\)|\1|' \
       -e 's|#\(Include conf/extra/httpd-mpm.conf\)|\1|' \
       -e 's|#\(Include conf/extra/httpd-multilang-errordoc.conf\)|\1|' \
       -e 's|#\(Include conf/extra/httpd-userdir.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-vhosts.conf\)|\1|' \
+      -e 's|#\(LoadModule include_module \)|\1|' \
+      -e 's|#\(LoadModule info_module \)|\1|' \
+      -e 's|#\(LoadModule negotiation_module \)|\1|' \
+      -e 's|#\(LoadModule request_module \)|\1|' \
+      -e 's|#\(LoadModule slotmem_shm_module \)|\1|' \
+      -e 's|#\(LoadModule suexec_module \)|\1|' \
+      -e 's|#\(LoadModule userdir_module \)|\1|' \
       -i "${pkgdir}/etc/httpd/conf/httpd.conf"
 
   # cleanup
