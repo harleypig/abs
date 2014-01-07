@@ -4,9 +4,13 @@
 # Contributor: Pierre Schmitz <pierre@archlinux.de>
 
 # This is a minimal installation based on both the 2.2.x version available in
-# the abs and the BLFS instructions
-# ( http://www.linuxfromscratch.org/blfs/view/svn/server/apache.html ), also
-# see the discussion page for other pointers.
+# the extra repository and the 2.4.x version available in the aur.  Also, the
+# BLFS instructions and discussion pages were helpful.
+#
+# URLs:
+#  https://httpd.apache.org/docs/2.4/install.html
+#  http://www.linuxfromscratch.org/blfs/view/svn/server/apache.html
+#  https://aur.archlinux.org/packages/ap/apache24/PKGBUILD
 
 pkgname=apache
 pkgver=2.4.7
@@ -31,9 +35,13 @@ optdepends=('lynx: apachectl status'
             'db: Berkeley DB'
             'doxygen: Documentation')
 
+provides=('apache')
+conflicts=('apache')
+
 install=apache.install
 
 source=(http://www.apache.org/dist/httpd/httpd-${pkgver}.tar.bz2
+        http://www.apache.org/dist/httpd/httpd-${pkgver}.tar.bz2.asc
         apachectl-confd.patch
         apache.conf.d
         apache.tmpfiles.conf
@@ -43,9 +51,10 @@ source=(http://www.apache.org/dist/httpd/httpd-${pkgver}.tar.bz2
 
 # Generate this with updpkgsums.
 md5sums=('170d7fb6fe5f28b87d1878020a9ab94e'
+         'SKIP'
          '5581f3e14eec926ca23f07277d0dfa48'
          '08b3c875f6260644f2f52b4056d656b0'
-         '82068753dab92fe86312b1010a2904d7'
+         '26a5d2b1d9e89b339b8608c5002f8c00'
          '13dbaaf949c5bc36cfcf5718b95cb020'
          'a823bb355c136fd0e2b3fb820e2d903c'
          'dd69fd0c02f7f6e2b923f0c20383a96a')
@@ -88,7 +97,7 @@ build() {
   # See the various bits of documentation for suexec.
   # caller needs to be the same as the default user we set above.
   # docroot needs to match the default docroot we set in layout.
-  # safepath is the path suexec can access, since the default resolves to
+  # safepath is the path suexec can access; since the default resolves to
   #   /usr/bin for all paths, just remove the duplication.
   config_options="${config_options} --enable-suexec=shared"
   config_options="${config_options} --with-suexec-caller=http"
@@ -109,31 +118,32 @@ package() {
   cd "${srcdir}/httpd-${pkgver}"
   make DESTDIR="${pkgdir}/" install
 
-  install -D -m644 "${srcdir}/httpd.logrotate" "${pkgdir}/etc/logrotate.d/httpd"
-  install -D -m644 "${srcdir}/apache.conf.d" "${pkgdir}/etc/conf.d/apache"
+  install -D -m644 "${srcdir}/apache.conf.d"        "${pkgdir}/etc/conf.d/apache"
   install -D -m644 "${srcdir}/apache.tmpfiles.conf" "${pkgdir}/usr/lib/tmpfiles.d/apache.conf"
+  install -D -m644 "${srcdir}/httpd.logrotate"      "${pkgdir}/etc/logrotate.d/httpd"
+
+  install -m755 -d "${pkgdir}/usr/lib/systemd/system"
+  install -m644    "${srcdir}/httpd.service" "${pkgdir}/usr/lib/systemd/system/"
 
   # symlinks for /etc/httpd
-  ln -fs /var/log/httpd "${pkgdir}/etc/httpd/logs"
   ln -fs /run/httpd "${pkgdir}/etc/httpd/run"
-  ln -fs /usr/lib/httpd/modules "${pkgdir}/etc/httpd/modules"
   ln -fs /usr/lib/httpd/build "${pkgdir}/etc/httpd/build"
+  ln -fs /usr/lib/httpd/modules "${pkgdir}/etc/httpd/modules"
+  ln -fs /var/log/httpd "${pkgdir}/etc/httpd/logs"
 
   # set sane defaults
   sed -e 's#/usr/lib/httpd/modules/#modules/#' \
-      -e 's|#\(Include conf/extra/httpd-multilang-errordoc.conf\)|\1|' \
       -e 's|#\(Include conf/extra/httpd-autoindex.conf\)|\1|' \
-      -e 's|#\(Include conf/extra/httpd-languages.conf\)|\1|' \
-      -e 's|#\(Include conf/extra/httpd-userdir.conf\)|\1|' \
       -e 's|#\(Include conf/extra/httpd-default.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-languages.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-mpm.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-multilang-errordoc.conf\)|\1|' \
+      -e 's|#\(Include conf/extra/httpd-userdir.conf\)|\1|' \
       -i "${pkgdir}/etc/httpd/conf/httpd.conf"
 
   # cleanup
   rm -rf "${pkgdir}/etc/httpd/conf/original"
   rm -rf "${pkgdir}/srv/"
   rm -rf "${pkgdir}/run"
-
-  install -m755 -d "${pkgdir}/usr/lib/systemd/system"
-  install -m644 "${srcdir}/httpd.service" "${pkgdir}/usr/lib/systemd/system/"
 
 }
