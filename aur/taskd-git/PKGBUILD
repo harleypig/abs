@@ -1,0 +1,76 @@
+# Maintainer: Alan Young <harleypig@gmail.com>
+
+_pkgname=taskd
+pkgname=$_pkgname-git
+pkgver=Post100ToMaster
+pkgrel=1
+pkgdesc="A lightweight, secure server providing multi-user, multi-client access to task data"
+
+arch=('i686' 'x86_64')
+depends=('gnutls')
+license=('MIT')
+makedepends=('git' 'cmake')
+provides=('taskd')
+url='http://tasktools.org/projects/taskd.html'
+
+source=('git://tasktools.org/taskd.git'
+        'taskd.conf'
+        'taskd.service')
+md5sums=('SKIP'
+         'c677dde7fcd08d6f9c40434eb1c00e84'
+         'e853d77d19f8b57b665b5d8dc99d87b4')
+
+pkgver() {
+
+  cd "${srcdir}/${_pkgname}"
+  git describe --tags | sed -E 's/([^-]*-g)/r\1/;s/-/./g'
+
+}
+
+build() {
+
+  cd "${srcdir}/${_pkgname}"
+
+  cmake_opts="${cmake_opts} -DCMAKE_BUILD_TYPE=Release"
+  cmake_opts="${cmake_opts} -DTASKD_BINDIR=/usr/bin"
+  cmake_opts="${cmake_opts} -DTASKD_DOCDIR=/usr/share/doc/taskd"
+  cmake_opts="${cmake_opts} -DTASKD_MAN1DIR=/usr/share/man/man1"
+  cmake_opts="${cmake_opts} -DTASKD_MAN5DIR=/usr/share/man/man5"
+
+  cmake $cmake_opts .
+
+  make
+
+}
+
+check() {
+
+  cd "${srcdir}/${_pkgname}"
+  make test
+  cd test
+  make
+  ./run_all
+
+}
+
+package() {
+
+  cd "${srcdir}/${_pkgname}"
+
+  make DESTDIR="${pkgdir}" install
+
+  install -Dm644 doc/client.txt     "${pkgdir}/usr/share/doc/taskd"
+  install -Dm644 doc/extensions.txt "${pkgdir}/usr/share/doc/taskd"
+  install -Dm644 doc/operation.txt  "${pkgdir}/usr/share/doc/taskd"
+  install -Dm644 doc/protocol.txt   "${pkgdir}/usr/share/doc/taskd"
+  install -Dm644 doc/request.txt    "${pkgdir}/usr/share/doc/taskd"
+  install -Dm644 doc/sync.txt       "${pkgdir}/usr/share/doc/taskd"
+  install -Dm644 doc/task.txt       "${pkgdir}/usr/share/doc/taskd"
+  install -Dm644 doc/template.txt   "${pkgdir}/usr/share/doc/taskd"
+  install -Dm644 ../taskd.conf      "${pkgdir}/etc/conf.d/taskd"
+  install -Dm644 ../taskd.service   "${pkgdir}/usr/lib/systemd/system/taskd.service"
+  install -Dm644 LICENSE            "${pkgdir}/usr/share/licenses/taskd/LICENSE"
+
+  install -d "${pkgdir}/var/lib/taskd"
+
+}
