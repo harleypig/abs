@@ -1,8 +1,10 @@
 # Maintainer: Alan Young <harleypig@gmail.com>
+#
+# Stolen and modified from https://aur.archlinux.org/packages/taskd-git/
 
 _pkgname=taskd
 pkgname=$_pkgname-git
-pkgver=Post100ToMaster
+pkgver=s1.1.0.r29.gfaccac4
 pkgrel=1
 pkgdesc="A lightweight, secure server providing multi-user, multi-client access to task data"
 
@@ -13,7 +15,7 @@ makedepends=('git' 'cmake')
 provides=('taskd')
 url='http://tasktools.org/projects/taskd.html'
 
-source=('git://tasktools.org/taskd.git'
+source=('git+https://git.tasktools.org/scm/tm/taskd.git'
         'taskd.conf'
         'taskd.service')
 md5sums=('SKIP'
@@ -22,8 +24,12 @@ md5sums=('SKIP'
 
 pkgver() {
 
+  # https://wiki.archlinux.org/index.php/VCS_PKGBUILD_Guidelines#Git
+
   cd "${srcdir}/${_pkgname}"
-  git describe --tags | sed -E 's/([^-]*-g)/r\1/;s/-/./g'
+  #git describe --tags | sed -E 's/([^-]*-g)/r\1/;s/-/./g'
+  #git describe --long --tags | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
+  git describe --long | sed -r 's/^[^[:digit:]]+//;s/([^-]*-g)/r\1/;s/-/./g'
 
 }
 
