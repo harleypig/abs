@@ -86,6 +86,4 @@ package() {
   install -Dm644 ../taskd.service   "${pkgdir}/usr/lib/systemd/system/taskd.service"
   install -Dm644 LICENSE            "${pkgdir}/usr/share/licenses/taskd/LICENSE"
 
-  install -d "${pkgdir}/var/lib/taskd"
-
 }
