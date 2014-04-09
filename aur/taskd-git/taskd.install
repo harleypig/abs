@@ -8,7 +8,7 @@ pre_install() {
     useradd -r -g taskd -s /sbin/nologin \
     -c "Task Server system user" taskd
 
-  install -o$(id -g taskd) -g$(id -u taskd) -d "${pkgdir}/var/lib/taskd"
+  install -o$(id -g taskd) -g$(id -u taskd) -m2770 -d "${pkgdir}/var/lib/taskd"
 
 }
 

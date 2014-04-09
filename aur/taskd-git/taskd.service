@@ -4,7 +4,7 @@ Documentation=man:taskd(1)
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/taskd --data $TASKD_ROOT
+ExecStart=/usr/bin/taskd --data $TASKDDATA
 EnvironmentFile=/etc/conf.d/taskd
 User=taskd
 Group=taskd

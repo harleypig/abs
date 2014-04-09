@@ -2,5 +2,6 @@
 !.gitignore
 !PKGBUILD
 !taskd.conf
-!taskd.service
 !taskd.install
+!taskd.notes
+!taskd.service
