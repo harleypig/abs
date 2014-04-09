@@ -1,12 +1,13 @@
 ## arg 1:  the new package version
 pre_install() {
 
+  echo "In pre_install..."
   # add taskd group if it doesn't exist
-  getent group taskd >/dev/null || groupadd -r taskd
+  getent group taskd > /dev/null || groupadd -r taskd
 
   # add taskd  user if it doesn't exist
-  getent passwd taskd >/dev/null || \
-    useradd -r -g taskd -d HOMEDIR -s /sbin/nologin \
+  getent passwd taskd > /dev/null || \
+    adduser -r -g taskd -s /sbin/nologin \
     -c "Task Server system user" taskd
 
 }

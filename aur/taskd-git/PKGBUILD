@@ -21,6 +21,8 @@ makedepends=('git' 'cmake')
 provides=('taskd')
 url='http://tasktools.org/projects/taskd.html'
 
+install=taskd.install
+
 source=('git+https://git.tasktools.org/scm/tm/taskd.git'
         'taskd.conf'
         'taskd.service')
