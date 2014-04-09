@@ -24,9 +24,10 @@ url='http://tasktools.org/projects/taskd.html'
 source=('git+https://git.tasktools.org/scm/tm/taskd.git'
         'taskd.conf'
         'taskd.service')
+
 md5sums=('SKIP'
-         'c677dde7fcd08d6f9c40434eb1c00e84'
-         'e853d77d19f8b57b665b5d8dc99d87b4')
+         '8e644fd70bea84c8fabe8a24e26a4549'
+         '7a6dbe01a40a368ffe2876ec2a67bb64')
 
 #pkgver() {
 #

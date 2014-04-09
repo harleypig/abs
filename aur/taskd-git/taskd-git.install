@@ -1,0 +1,46 @@
+## arg 1:  the new package version
+pre_install() {
+
+  # add taskd group if it doesn't exist
+  getent group taskd >/dev/null || groupadd -r taskd
+
+  # add taskd  user if it doesn't exist
+  getent passwd taskd >/dev/null || \
+    useradd -r -g taskd -d HOMEDIR -s /sbin/nologin \
+    -c "Task Server system user" taskd
+
+}
+
+## arg 1:  the new package version
+post_install() {
+
+  systemctl preset taskd.service
+
+}
+
+## arg 1:  the new package version
+## arg 2:  the old package version
+#pre_upgrade() {
+  # do something here
+#}
+
+## arg 1:  the new package version
+## arg 2:  the old package version
+#post_upgrade() {
+  # do something here
+#}
+
+## arg 1:  the old package version
+pre_remove() {
+
+  systemctl --no-reload disable taskd.service
+  systemctl stop taskd.service
+
+}
+
+## arg 1:  the old package version
+post_remove() {
+
+  systemctl daemon-reload
+
+}
