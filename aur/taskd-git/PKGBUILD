@@ -1,10 +1,16 @@
 # Maintainer: Alan Young <harleypig@gmail.com>
 #
 # Stolen and modified from https://aur.archlinux.org/packages/taskd-git/
+#
+# Found and stole various bits and pieces from
+#
+# http://threebean.org/rpm/taskd-config
+# http://threebean.org/rpm/taskd.service
+# http://threebean.org/rpm/taskd.spec
 
 _pkgname=taskd
 pkgname=$_pkgname-git
-pkgver=s1.1.0.r29.gfaccac4
+pkgver=1.1.0
 pkgrel=1
 pkgdesc="A lightweight, secure server providing multi-user, multi-client access to task data"
 
@@ -22,16 +28,16 @@ md5sums=('SKIP'
          'c677dde7fcd08d6f9c40434eb1c00e84'
          'e853d77d19f8b57b665b5d8dc99d87b4')
 
-pkgver() {
-
-  # https://wiki.archlinux.org/index.php/VCS_PKGBUILD_Guidelines#Git
-
-  cd "${srcdir}/${_pkgname}"
-  #git describe --tags | sed -E 's/([^-]*-g)/r\1/;s/-/./g'
-  #git describe --long --tags | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
-  git describe --long | sed -r 's/^[^[:digit:]]+//;s/([^-]*-g)/r\1/;s/-/./g'
-
-}
+#pkgver() {
+#
+#  # https://wiki.archlinux.org/index.php/VCS_PKGBUILD_Guidelines#Git
+#
+#  cd "${srcdir}/${_pkgname}"
+#  #git describe --tags | sed -E 's/([^-]*-g)/r\1/;s/-/./g'
+#  #git describe --long --tags | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
+#  git describe --long --tags | sed -r 's/^[^[:digit:]]+//;s/([^-]*-g)/r\1/;s/-/./g'
+#
+#}
 
 build() {
 
