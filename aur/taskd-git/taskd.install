@@ -1,7 +1,6 @@
 ## arg 1:  the new package version
 pre_install() {
 
-  echo "In pre_install..."
   # add taskd group if it doesn't exist
   getent group taskd > /dev/null || groupadd -r taskd
 
