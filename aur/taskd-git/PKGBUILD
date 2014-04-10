@@ -25,11 +25,13 @@ install=taskd.install
 
 source=('git+https://git.tasktools.org/scm/tm/taskd.git'
         'taskd.conf'
+        'taskd.notes'
         'taskd.service')
 
 md5sums=('SKIP'
          '8e644fd70bea84c8fabe8a24e26a4549'
-         '7a6dbe01a40a368ffe2876ec2a67bb64')
+         '455f7ef0c9c5ed292f82b4864ef56aef'
+         '7e2f6b38ea5b03a75611d20b1add4d3f')
 
 #pkgver() {
 #
