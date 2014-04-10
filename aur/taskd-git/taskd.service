@@ -11,6 +11,7 @@ ExecStop=/usr/bin/taskdctl stop
 PIDFile=/var/lib/taskd/taskd.pid
 Group=taskd
 User=taskd
+Type=forking
 
 [Install]
 WantedBy=multi-user.target
