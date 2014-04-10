@@ -4,10 +4,13 @@ Documentation=man:taskd(1)
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/taskdctl start
 EnvironmentFile=/etc/conf.d/taskd
-User=taskd
+ExecReload=/usr/bin/taskdctl graceful
+ExecStart=/usr/bin/taskdctl start
+ExecStop=/usr/bin/taskdctl stop
+PIDFile=/var/lib/taskd/taskd.pid
 Group=taskd
+User=taskd
 
 [Install]
 WantedBy=multi-user.target
