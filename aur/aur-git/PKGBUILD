@@ -5,7 +5,7 @@
 # Yes, this has been stolen whole from the original aur-git package.
 
 pkgname=aur-git
-pkgver=20131217
+pkgver=20140516
 pkgrel=1
 pkgdesc='ABS-like command line tool to sync with the AUR git repository'
 arch=('any')
