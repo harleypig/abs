@@ -3,7 +3,7 @@
 
 _pkgname=craftbukkit
 pkgname=${_pkgname}-git
-pkgver=1.7.9.R0.1.1.g5786276
+pkgver=1.7.9.R0.1.2.g1e4dcde
 epoch=1
 pkgrel=1
 pkgdesc="Implementation of Bukkit Minecraft Server Mod API (git)"
