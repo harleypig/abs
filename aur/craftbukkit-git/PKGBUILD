@@ -3,7 +3,7 @@
 
 _pkgname=craftbukkit
 pkgname=${_pkgname}-git
-pkgver=1.7.9.R0.1.2.g1e4dcde
+pkgver=1.7.9.R0.2.16.g37c7969
 epoch=1
 pkgrel=1
 pkgdesc="Implementation of Bukkit Minecraft Server Mod API (git)"
@@ -15,7 +15,7 @@ makedepends=('git' 'maven')
 provides=("craftbukkit=$(IFS='.'; set -- ${pkgver}; echo ${1}.${2}.${3}${4}.${5} | sed 's|R|r|g')" "bukkit")
 conflicts=('craftbukkit')
 install=craftbukkit-git.install
-source=("git+https://github.com/Bukkit/CraftBukkit.git"
+source=("git+ssh://github.com/Bukkit/CraftBukkit.git"
         'craftbukkit.service'
         'craftbukkit.sh')
 sha256sums=("SKIP"

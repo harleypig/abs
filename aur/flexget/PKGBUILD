@@ -1,14 +1,15 @@
+# Maintainer: Amr Hassan <amr.hassan@gmail.com>
+# Maintainer: Nathan Owe <ndowens.aur at gmail dot com>
 # Maintainer: G. Richard Bellamy <rbellamy@pteradigm.com>
-# Contributor: Andrea Repetto <andrea.repetto85@gmail.com>
-# Contributor: Bogdan Szczurek <thebodzio@gmail.com>
 
-pkgname=flexget-git
-pkgver=1.2.163.r0.g6918bc5
+pkgname=flexget
+_pkgname=FlexGet
+pkgver=1.2.283
 pkgrel=1
 
 pkgdesc="Automate downloading or processing content (torrents, podcasts, etc.) from different sources like RSS-feeds, html-pages, various sites and more."
 
-arch=('i686' 'x86_64')
+arch=('any')
 url="http://flexget.com/"
 license=('MIT')
 
@@ -20,11 +21,13 @@ depends=('python2'
          'python2-yaml'
          'python2-beautifulsoup4>=4.1'
          'python2-beautifulsoup4<4.4'
+         'python2-guessit>=0.9.3'
          'python2-html5lib>=0.11'
          'python2-pyrss2gen' #AUR#
          'python2-progressbar'
          'python2-rpyc' #AUR#
          'python2-jinja'
+         'python2-path>=5.1' #AUR#
          'python2-requests>=1.0'
          'python2-requests<2.99'
          'python2-dateutil1' #AUR#
@@ -32,6 +35,7 @@ depends=('python2'
          'python2-tvrage' #AUR#
          'python2-tmdb3' #AUR#
          'python2-pynzb' #AUR#
+         'python2-apscheduler' #AUR#
          # undocumented in FlexGet.egg-info/requires.txt
          )
 optdepends=('python2-guppy: for memusage plugin' #AUR#
@@ -39,34 +43,23 @@ optdepends=('python2-guppy: for memusage plugin' #AUR#
             'python2-cherrypy: web interface'
             'python2-flask: web interface'
             )
-makedepends=('git'
-             'python2-distribute'
-             'python2-paver'
+makedepends=('python2-paver'
+             'python2-setuptools'
              )
 
-provides=('flexget')
-conflicts=('flexget')
-
-source=('git://github.com/Flexget/Flexget'
+source=("https://pypi.python.org/packages/source/F/FlexGet/${_pkgname}-${pkgver}.tar.gz"
         'flexget.service'
+        "http://download.flexget.com/ChangeLog"
         )
-sha256sums=('SKIP'
-            'e2c3a958ed0c286337cd37fba1d6cbdf4306c57fcddf2b9cc43615ce80ae83aa')
 
-pkgver() {
-  cd Flexget
-  git describe --long | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
-}
+changelog=ChangeLog
 
-prepare() {
-  cd Flexget
-
-  msg "Patching shebangs to point to python2"
-  sed -i 's/\(python\)/\12/' flexget{,/ui}/__init__.py
-}
+sha256sums=('277f79c9c04e918e5d55c0e7d56663c614cb2b9959f9669a79881aea0dfa8996'
+            'e2c3a958ed0c286337cd37fba1d6cbdf4306c57fcddf2b9cc43615ce80ae83aa'
+            'b10cbe3a4874c07a4a78728f07b9bccc6870a06711e02a486306206dcde2ca48')
 
 package() {
-  cd Flexget
+  cd "${srcdir}/${_pkgname}-${pkgver}"
 
   # Python setup
   python2 setup.py install --root="${pkgdir}"/ --prefix=/usr --optimize=1 || return 1
@@ -75,7 +68,7 @@ package() {
   install -Dm644 LICENSE "${pkgdir}"/usr/share/licenses/"${pkgname}"/LICENSE
 
   # Make sure the perms allow reading by all
-  chmod ugo+r ${pkgdir}/usr/lib/python2.7/site-packages/FlexGet-1.2-py2.7.egg-info/*
+  chmod ugo+r ${pkgdir}/usr/lib/python2.7/site-packages/${_pkgname}-${pkgver}-py2.7.egg-info/*
 
   # install systemd user unit
   install -Dm644 ../flexget.service "${pkgdir}"/usr/lib/systemd/user/flexget.service
